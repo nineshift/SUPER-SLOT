@@ -853,41 +853,104 @@ function spin(){
   buildReel();
 
   const target=items[Math.floor(Math.random()*items.length)];
-  startSpin(); startTicks();
-  setTimeout(()=>stopSpin(target),2200);
+  if(AC.state==='suspended') AC.resume();
+  startSpinUnified(target);
 }
 
-function startSpin(){const reel=document.getElementById('reel0');Array.from(reel.children).forEach(el=>el.classList.remove('active'));let speed=0;reel._spinning=true;function frame(){if(!reel._spinning)return;speed=Math.min(speed+2,28);reel._offset=(reel._offset||0)+speed;const totalH=reel.children.length*ITEM_H;if(reel._offset>totalH-ITEM_H*4)reel._offset-=items.length*ITEM_H;reel.style.transform=`translateY(-${reel._offset}px)`;reel._raf=requestAnimationFrame(frame);reel._speed=speed;}reel._raf=requestAnimationFrame(frame);}
+function startSpinUnified(targetText) {
+  const reel = document.getElementById('reel0');
+  Array.from(reel.children).forEach(el => el.classList.remove('active'));
 
-function stopSpin(targetText){
-  stopTicks();
-  const reel=document.getElementById('reel0');reel._spinning=false;cancelAnimationFrame(reel._raf);
-  const containerH=222;const centerOffset=(containerH-ITEM_H)/2;
-  const children=Array.from(reel.children);const searchFrom=Math.floor(children.length*0.3);
-  let targetIdx=searchFrom;
-  for(let i=searchFrom;i<children.length-3;i++){if(children[i].textContent===targetText){targetIdx=i;break;}}
-  const targetOffset=targetIdx*ITEM_H-centerOffset;
-  let cur=reel._offset||0;let speed=reel._speed||28;
-  const totalH=children.length*ITEM_H;cur=((cur%totalH)+totalH)%totalH;
-  while(cur>targetOffset)cur-=items.length*ITEM_H;
-  // Fixed approach distance: always 3-4 items worth, regardless of list size
-  const minApproachDist = ITEM_H * 4;
-  while(targetOffset-cur<minApproachDist)cur-=items.length*ITEM_H;
-  // Track which item boundary we last crossed for tick triggering
-  let lastTickItem = Math.floor(cur / ITEM_H);
-  function decel(){
-    const dist=targetOffset-cur;
-    if(dist<=1){cur=targetOffset;reel.style.transform=`translateY(-${cur}px)`;children.forEach((el,i)=>el.classList.toggle('active',i===targetIdx));onDone(targetText);return;}
-    speed=Math.max(4,Math.min(speed*0.96,dist*0.18));
-    cur+=Math.min(speed,dist);
-    // Fire a tick every time the reel crosses an item boundary
-    const currentItem = Math.floor(cur / ITEM_H);
-    if(currentItem !== lastTickItem){ playSpinTick(); lastTickItem = currentItem; }
-    reel.style.transform=`translateY(-${cur}px)`;
-    requestAnimationFrame(decel);
+  const children = Array.from(reel.children);
+  const containerH = 222;
+  const centerOffset = (containerH - ITEM_H) / 2;
+
+  // Find target index
+  const searchFrom = Math.floor(children.length * 0.3);
+  let targetIdx = searchFrom;
+  for(let i = searchFrom; i < children.length - 3; i++) {
+    if(children[i].textContent === targetText) { targetIdx = i; break; }
   }
-  requestAnimationFrame(decel);
+  const targetOffset = targetIdx * ITEM_H - centerOffset;
+
+  // Phase durations (ms)
+  const T_ACCEL = 600;   // ramp up
+  const T_CRUISE = 2200; // full speed
+  const T_DECEL = 2800;  // +1s longer decel (was 1800)
+  const T_TOTAL = T_ACCEL + T_CRUISE + T_DECEL;
+
+  // Peak speed in px/ms
+  const peakSpeed = 1.4;
+
+  // Distance covered during accel (ease-in quad): integral of t^2 curve * peakSpeed * T_ACCEL
+  const d_accel = peakSpeed * T_ACCEL / 3;
+  // Distance during cruise
+  const d_cruise = peakSpeed * T_CRUISE;
+
+  // Starting position
+  const startPos = reel._offset || 0;
+  const totalH = children.length * ITEM_H;
+
+  // We need to land exactly on targetOffset.
+  // Total distance = d_accel + d_cruise + d_decel
+  // Normalise: find how far we need to go so we end at targetOffset
+  let normStart = ((startPos % totalH) + totalH) % totalH;
+  let normTarget = ((targetOffset % totalH) + totalH) % totalH;
+  // We always move forward, so compute forward distance to target
+  let fwdToTarget = (normTarget - normStart + totalH) % totalH;
+  // Add enough full loops so total distance >= d_accel + d_cruise + some margin
+  const minDist = d_accel + d_cruise + ITEM_H * 4;
+  while(fwdToTarget < minDist) fwdToTarget += items.length * ITEM_H;
+  // d_decel must be exactly the remainder
+  const d_total = fwdToTarget;
+  const d_decel = d_total - d_accel - d_cruise;
+
+  const startTime = performance.now();
+  let lastSliceCount = 0;
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed, T_TOTAL);
+    let pos;
+
+    if(t <= T_ACCEL) {
+      const p = t / T_ACCEL;
+      pos = startPos + d_accel * p * p;
+    } else if(t <= T_ACCEL + T_CRUISE) {
+      const p = t - T_ACCEL;
+      pos = startPos + d_accel + peakSpeed * p;
+    } else {
+      const p = (t - T_ACCEL - T_CRUISE) / T_DECEL;
+      pos = startPos + d_accel + d_cruise + d_decel * (1 - Math.pow(1 - p, 3));
+    }
+
+    // Wrap for display
+    const displayPos = ((pos % totalH) + totalH) % totalH;
+    reel.style.transform = `translateY(-${displayPos}px)`;
+
+    // Tick on every new slice boundary crossed (cumulative, no modulo glitch)
+    const sliceCount = Math.floor((pos - startPos) / ITEM_H);
+    if(sliceCount > lastSliceCount) {
+      playSpinTick();
+      lastSliceCount = sliceCount;
+    }
+
+    if(t < T_TOTAL) {
+      reel._raf = requestAnimationFrame(frame);
+    } else {
+      reel.style.transform = `translateY(-${((targetOffset % totalH) + totalH) % totalH}px)`;
+      stopTicks();
+      children.forEach((el, i) => el.classList.toggle('active', i === targetIdx));
+      onDone(targetText);
+    }
+  }
+
+  reel._raf = requestAnimationFrame(frame);
 }
+
+// Legacy stubs (no longer used)
+function startSpin(){}
+function stopSpin(){}
 
 function onDone(result){
   spinning=false;
