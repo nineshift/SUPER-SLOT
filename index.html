@@ -304,42 +304,37 @@
   .hint { font-size: 0.7rem; color: rgba(30,27,75,0.45); margin-top: 7px; font-weight: 700; }
 
   /* ── Auto-remove toggle ── */
-  .toggle-row {
+  /* ── Compact sub-controls ── */
+  .sub-controls {
     display: flex; align-items: center; gap: 10px;
-    margin-bottom: 16px;
-    background: var(--bg);
-    border: 2px solid var(--ink);
-    border-radius: 10px;
-    padding: 10px 14px;
-    box-shadow: 3px 3px 0 var(--ink);
-    cursor: pointer;
-    user-select: none;
+    margin-top: 12px; flex-wrap: wrap;
   }
-  .toggle-row:hover { background: #fde68a; }
-  .toggle-label {
-    font-family: 'Boogaloo', cursive;
-    font-size: 1rem; color: var(--ink);
-    letter-spacing: 0.05em; flex: 1;
+  .sub-toggle {
+    display: flex; align-items: center; gap: 7px;
+    cursor: pointer; user-select: none;
+    font-family: 'Boogaloo', cursive; font-size: 0.82rem;
+    color: var(--ink); letter-spacing: 0.03em;
+    background: var(--bg); border: 2px solid var(--ink);
+    border-radius: 20px; padding: 5px 12px 5px 7px;
+    box-shadow: 2px 2px 0 var(--ink); transition: all 0.1s;
+    flex-shrink: 0;
   }
-  .toggle-switch {
-    width: 44px; height: 24px;
+  .sub-toggle:hover { background: #fde68a; }
+  .sub-toggle-switch {
+    width: 30px; height: 16px;
     background: rgba(30,27,75,0.15);
-    border: 2px solid var(--ink);
-    border-radius: 12px;
-    position: relative; flex-shrink: 0;
-    transition: background 0.2s;
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    position: relative; flex-shrink: 0; transition: background 0.2s;
   }
-  .toggle-switch::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 16px; height: 16px;
-    background: var(--ink);
-    border-radius: 50%;
+  .sub-toggle-switch::after {
+    content: ''; position: absolute;
+    top: 1px; left: 1px;
+    width: 11px; height: 11px;
+    background: var(--ink); border-radius: 50%;
     transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
   }
-  .toggle-row.on .toggle-switch { background: var(--green); }
-  .toggle-row.on .toggle-switch::after { transform: translateX(20px); }
+  .sub-toggle.on .sub-toggle-switch { background: var(--green); }
+  .sub-toggle.on .sub-toggle-switch::after { transform: translateX(14px); }
 
   /* Tag remove animation */
   @keyframes tagRemove {
@@ -586,10 +581,6 @@
       </div>
     </div>
     <div class="result-display" id="result"><span class="result-text">👉 スピンして決めよう！</span></div>
-    <div class="toggle-row" id="toggleRow" onclick="toggleAutoRemove()">
-      <span class="toggle-label">🗑️ 選ばれたら自動で消す</span>
-      <div class="toggle-switch"></div>
-    </div>
     <button class="spin-btn" id="spinBtn" onclick="spin()">🎰 GO!! 🎰</button>
     <div class="editor">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -602,6 +593,14 @@
         <button class="add-btn" onclick="addItem()">追加!</button>
       </div>
       <p class="hint">Enter=追加 / Shift+Enter=改行 / 複数行まとめてOK</p>
+    </div>
+
+    <!-- Compact sub-controls -->
+    <div class="sub-controls">
+      <div class="sub-toggle" id="toggleRow" onclick="toggleAutoRemove()">
+        <div class="sub-toggle-switch"></div>
+        <span>選ばれたら消す</span>
+      </div>
     </div>
   </div>
 
