@@ -1,1 +1,982 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUPER SLOT!!</title>
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fef08a;
+    --pink: #f472b6;
+    --blue: #38bdf8;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --green: #4ade80;
+    --ink: #1e1b4b;
+    --white: #ffffff;
+    --shadow: rgba(30,27,75,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    color: var(--ink);
+    padding: 30px 20px 60px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Halftone dots background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: radial-gradient(circle, rgba(30,27,75,0.08) 1px, transparent 1px);
+    background-size: 18px 18px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* Big diagonal stripe */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -100%; left: -20%;
+    width: 40%;
+    height: 300%;
+    background: rgba(255,255,255,0.2);
+    transform: rotate(15deg);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; width: min(440px, 100%); }
+
+  h1 {
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(2.8rem, 9vw, 4.5rem);
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 0;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    -webkit-text-stroke: 3px var(--ink);
+    paint-order: stroke fill;
+    text-shadow: 4px 4px 0 var(--pink), 7px 7px 0 var(--blue);
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 1rem; font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 22px;
+    letter-spacing: 0.1em;
+    background: var(--pink);
+    display: inline-block;
+    padding: 3px 16px;
+    border: 2px solid var(--ink);
+    transform: rotate(-1deg);
+    margin-left: auto; margin-right: auto;
+    display: block;
+    width: fit-content;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .machine {
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 6px 6px 0 var(--ink);
+    position: relative;
+  }
+
+  /* Starburst decoration */
+  .machine::before {
+    content: '★';
+    position: absolute;
+    top: -18px; right: 24px;
+    font-size: 2.2rem;
+    color: var(--orange);
+    -webkit-text-stroke: 2px var(--ink);
+    transform: rotate(20deg);
+    animation: wobble 2s ease-in-out infinite;
+  }
+  .machine::after {
+    content: '✦';
+    position: absolute;
+    top: -14px; left: 24px;
+    font-size: 1.8rem;
+    color: var(--blue);
+    -webkit-text-stroke: 2px var(--ink);
+    transform: rotate(-10deg);
+    animation: wobble 2.5s ease-in-out infinite reverse;
+  }
+  @keyframes wobble {
+    0%,100% { transform: rotate(20deg) scale(1); }
+    50% { transform: rotate(25deg) scale(1.1); }
+  }
+
+  .reel-frame {
+    background: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .reel-inner {
+    background: #fff;
+    border-radius: 9px;
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Colored side strips */
+  .reel-inner::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 6px;
+    background: linear-gradient(to bottom, var(--pink), var(--purple), var(--blue));
+  }
+  .reel-inner::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0; width: 6px;
+    background: linear-gradient(to bottom, var(--blue), var(--purple), var(--pink));
+  }
+
+  .reel-highlight {
+    position: absolute;
+    left: 18px; right: 18px;
+    top: 50%; transform: translateY(-50%);
+    height: 74px;
+    background: rgba(251,146,60,0.12);
+    border: 2px dashed var(--orange);
+    border-radius: 8px;
+    pointer-events: none; z-index: 10;
+  }
+
+  .reel-container {
+    height: 222px; overflow: hidden;
+    position: relative; background: #fff;
+    border-radius: 4px;
+  }
+  .reel-container::before,
+  .reel-container::after {
+    content: ''; position: absolute;
+    left: 0; right: 0; height: 74px; z-index: 5; pointer-events: none;
+  }
+  .reel-container::before { top: 0; background: linear-gradient(to bottom, rgba(255,255,255,1) 20%, transparent); }
+  .reel-container::after  { bottom: 0; background: linear-gradient(to top, rgba(255,255,255,1) 20%, transparent); }
+
+  .reel { display: flex; flex-direction: column; will-change: transform; }
+  .reel-item {
+    height: 74px; display: flex;
+    align-items: center; justify-content: center;
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(1.3rem, 5vw, 1.9rem);
+    color: rgba(30,27,75,0.25);
+    padding: 4px 14px; text-align: center;
+    word-break: break-all; line-height: 1.2; flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+  .reel-item.active {
+    color: var(--ink);
+    -webkit-text-stroke: 1px var(--ink);
+  }
+
+  .result-display {
+    text-align: center; min-height: 54px;
+    margin-bottom: 16px;
+    font-family: 'Boogaloo', cursive;
+    font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--green);
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 3px 3px 0 var(--ink);
+    letter-spacing: 0.04em;
+  }
+
+  .spin-btn {
+    width: 100%; padding: 16px;
+    background: var(--pink);
+    border: 3px solid var(--ink);
+    border-radius: 10px;
+    color: var(--ink);
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.1s;
+    box-shadow: 4px 4px 0 var(--ink);
+    margin-bottom: 18px;
+  }
+  .spin-btn:hover:not(:disabled) {
+    background: var(--orange);
+    transform: translate(-2px,-2px);
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .spin-btn:active:not(:disabled) {
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .editor {
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .editor-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1rem;
+    color: var(--ink);
+    margin-bottom: 10px;
+    letter-spacing: 0.06em;
+  }
+  .items-container {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 10px; min-height: 36px;
+  }
+  .item-tag {
+    display: flex; align-items: center; gap: 4px;
+    background: var(--blue);
+    border: 2px solid var(--ink);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.88rem; font-weight: 700;
+    color: var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+    animation: tagPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes tagPop { from { opacity:0; transform:scale(0.5) rotate(-10deg); } to { opacity:1; transform:scale(1) rotate(0deg); } }
+  .item-tag button {
+    background: none; border: none;
+    color: var(--ink); cursor: pointer;
+    font-size: 0.85rem; font-weight: 900; line-height: 1; padding: 0;
+    transition: transform 0.15s;
+  }
+  .item-tag button:hover { transform: scale(1.3); }
+
+  .add-row { display: flex; gap: 8px; }
+  .add-input {
+    flex: 1;
+    background: var(--white);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; font-weight: 700;
+    outline: none;
+    transition: box-shadow 0.15s;
+    resize: none; min-height: 40px; max-height: 110px; line-height: 1.5;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .add-input:focus { box-shadow: 3px 3px 0 var(--purple); border-color: var(--purple); }
+  .add-input::placeholder { color: rgba(30,27,75,0.3); font-weight: 400; }
+
+  .add-btn {
+    background: var(--purple);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'Boogaloo', cursive;
+    font-size: 1rem;
+    padding: 9px 14px; cursor: pointer;
+    transition: all 0.1s; flex-shrink: 0;
+    box-shadow: 2px 2px 0 var(--ink);
+    font-weight: 400;
+  }
+  .add-btn:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); }
+  .add-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+
+  .hint { font-size: 0.7rem; color: rgba(30,27,75,0.45); margin-top: 7px; font-weight: 700; }
+
+  /* ── Auto-remove toggle ── */
+  /* ── Compact sub-controls ── */
+  .sub-controls {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 12px; flex-wrap: wrap;
+  }
+  .sub-toggle {
+    display: flex; align-items: center; gap: 7px;
+    cursor: pointer; user-select: none;
+    font-family: 'Boogaloo', cursive; font-size: 0.82rem;
+    color: var(--ink); letter-spacing: 0.03em;
+    background: var(--bg); border: 2px solid var(--ink);
+    border-radius: 20px; padding: 5px 12px 5px 7px;
+    box-shadow: 2px 2px 0 var(--ink); transition: all 0.1s;
+    flex-shrink: 0;
+  }
+  .sub-toggle:hover { background: #fde68a; }
+  .sub-toggle-switch {
+    width: 30px; height: 16px;
+    background: rgba(30,27,75,0.15);
+    border: 1.5px solid var(--ink); border-radius: 8px;
+    position: relative; flex-shrink: 0; transition: background 0.2s;
+  }
+  .sub-toggle-switch::after {
+    content: ''; position: absolute;
+    top: 1px; left: 1px;
+    width: 11px; height: 11px;
+    background: var(--ink); border-radius: 50%;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .sub-toggle.on .sub-toggle-switch { background: var(--green); }
+  .sub-toggle.on .sub-toggle-switch::after { transform: translateX(14px); }
+
+  /* Tag remove animation */
+  @keyframes tagRemove {
+    0%   { transform: scale(1) rotate(0deg); opacity: 1; max-width: 200px; padding: 4px 10px; }
+    40%  { transform: scale(1.25) rotate(-10deg); opacity: 0.9; }
+    100% { transform: scale(0) rotate(20deg); opacity: 0; max-width: 0; padding: 0; border-width: 0; }
+  }
+  .item-tag.removing { animation: tagRemove 0.38s cubic-bezier(0.55,0,1,0.45) forwards; overflow: hidden; }
+
+  @keyframes machineFlash {
+    0%,100% { box-shadow: 6px 6px 0 var(--ink); }
+    40% { box-shadow: 6px 6px 0 var(--pink), 0 0 30px rgba(244,114,182,0.4); background: #fff9c4; }
+  }
+  .machine.flash { animation: machineFlash 0.25s ease 4; }
+
+  /* ── Result pop upgrades ── */
+  .result-display { position: relative; overflow: hidden; }
+
+  /* Ink wipe */
+  .result-display::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--ink);
+    transform: translateX(-102%);
+    pointer-events: none; z-index: 2;
+    border-radius: 8px;
+  }
+  .result-display.wipe::before {
+    animation: inkWipe 0.42s cubic-bezier(0.77,0,0.18,1) forwards;
+  }
+  @keyframes inkWipe {
+    0%   { transform: translateX(-102%); }
+    45%  { transform: translateX(0%); }
+    100% { transform: translateX(102%); }
+  }
+
+  /* Bounce in */
+  .result-display .result-text { display: inline-block; }
+  .result-display.pop .result-text {
+    animation: resultBounce 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.22s both;
+  }
+  @keyframes resultBounce {
+    0%   { transform: scale(0.6) rotate(-4deg); opacity: 0; }
+    55%  { transform: scale(1.1) rotate(2deg); opacity: 1; }
+    75%  { transform: scale(0.96) rotate(-1deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  /* ── History panel ── */
+  .history-panel {
+    margin-top: 20px;
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 6px 6px 0 var(--ink);
+    display: none;
+  }
+  .history-panel.visible { display: block; }
+
+  .history-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .history-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem; color: var(--ink);
+    letter-spacing: 0.05em;
+  }
+  .history-clear {
+    background: none; border: 2px solid var(--ink);
+    border-radius: 6px; color: var(--ink);
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.8rem; padding: 3px 10px;
+    cursor: pointer; transition: all 0.1s;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  .history-clear:hover { background: var(--bg); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--ink); }
+  .history-clear:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+
+  .history-list {
+    display: flex; flex-direction: column; gap: 6px;
+  }
+
+  .history-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 2px 2px 0 var(--ink);
+    animation: historyIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes historyIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .history-num {
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.85rem; color: var(--ink);
+    opacity: 0.4; min-width: 22px; text-align: right;
+    flex-shrink: 0;
+  }
+  .history-value {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.05rem; color: var(--ink);
+    letter-spacing: 0.02em; flex: 1;
+  }
+  .history-badge {
+    font-size: 0.7rem; font-weight: 900;
+    background: var(--pink);
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .history-item:first-child .history-badge { background: var(--green); }
+
+  /* ── Analysis panel ── */
+  .analysis-panel {
+    margin-top: 16px;
+    background: var(--white);
+    border: 3px solid var(--ink);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 6px 6px 0 var(--ink);
+    display: none;
+  }
+  .analysis-panel.visible { display: block; }
+
+  .analysis-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .analysis-title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem; color: var(--ink); letter-spacing: 0.05em;
+  }
+
+  .analysis-verdict {
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.95rem;
+    padding: 8px 14px;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 2px 2px 0 var(--ink);
+    margin-bottom: 14px;
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+  .analysis-verdict.fair    { background: var(--green); }
+  .analysis-verdict.slight  { background: var(--bg); }
+  .analysis-verdict.biased  { background: var(--pink); }
+
+  .analysis-note {
+    font-size: 0.72rem; font-weight: 700;
+    color: rgba(30,27,75,0.45);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .bar-list { display: flex; flex-direction: column; gap: 7px; }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 36px;
+    align-items: center;
+    gap: 8px;
+  }
+  .bar-label {
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.95rem; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bar-track {
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    height: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.34,1.2,0.64,1);
+  }
+  .bar-fill.high   { background: var(--pink); }
+  .bar-fill.mid    { background: var(--blue); }
+  .bar-fill.low    { background: var(--bg); border-right: 2px solid var(--ink); }
+  .bar-expected {
+    position: absolute; top: 0; bottom: 0; width: 2px;
+    background: var(--ink); opacity: 0.4;
+  }
+  .bar-count {
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.9rem; color: var(--ink);
+    text-align: right;
+  }
+
+  .analysis-stats {
+    margin-top: 12px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .stat-chip {
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'Boogaloo', cursive;
+    font-size: 0.82rem; color: var(--ink);
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+
+  /* ── Footer links ── */
+  .footer-links {
+    display: flex; gap: 10px; justify-content: center;
+    margin-top: 20px; flex-wrap: wrap;
+  }
+  .footer-link {
+    font-family: 'Boogaloo', cursive; font-size: 0.9rem;
+    color: var(--ink); text-decoration: none;
+    background: var(--white); border: 2px solid var(--ink);
+    border-radius: 20px; padding: 7px 18px;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: all 0.1s; letter-spacing: 0.05em;
+  }
+  .footer-link:hover { background: var(--bg); transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+  .footer-link:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--ink); }
+  .footer-link.active { background: var(--pink); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>SUPER SLOT!!</h1>
+  <p class="subtitle">🎯 ランダム選択マシン 🎯</p>
+  <div class="machine" id="machine">
+    <div class="reel-frame">
+      <div class="reel-inner">
+        <div class="reel-highlight"></div>
+        <div class="reel-container" id="reelContainer">
+          <div class="reel" id="reel0"></div>
+        </div>
+      </div>
+    </div>
+    <div class="result-display" id="result"><span class="result-text">👉 スピンして決めよう！</span></div>
+    <button class="spin-btn" id="spinBtn" onclick="spin()">🎰 GO!! 🎰</button>
+    <div class="editor">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="editor-title" style="margin-bottom:0;">📋 選択肢リスト</div>
+        <button class="history-clear" onclick="clearItems()" title="選択肢をすべて削除">全削除</button>
+      </div>
+      <div class="items-container" id="tagsContainer"></div>
+      <div class="add-row">
+        <textarea class="add-input" id="addInput" placeholder="選択肢を入力…&#10;複数行でまとめて追加OK!" rows="1"></textarea>
+        <button class="add-btn" onclick="addItem()">追加!</button>
+      </div>
+      <p class="hint">Enter=追加 / Shift+Enter=改行 / 複数行まとめてOK</p>
+    </div>
+
+    <!-- Compact sub-controls -->
+    <div class="sub-controls">
+      <div class="sub-toggle" id="toggleRow" onclick="toggleAutoRemove()">
+        <div class="sub-toggle-switch"></div>
+        <span>選ばれたら消す</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- History panel -->
+  <div class="history-panel" id="historyPanel">
+    <div class="history-header">
+      <span class="history-title">📜 結果一覧</span>
+      <button class="history-clear" onclick="clearHistory()">クリア</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- Analysis panel -->
+  <div class="analysis-panel" id="analysisPanel">
+    <div class="analysis-header">
+      <span class="analysis-title">📊 偏り分析</span>
+    </div>
+    <div class="analysis-verdict" id="analysisVerdict"></div>
+    <div class="analysis-note" id="analysisNote"></div>
+    <div class="bar-list" id="barList"></div>
+    <div class="analysis-stats" id="analysisStats"></div>
+  </div>
+
+  <!-- Footer links -->
+  <div class="footer-links">
+    <a class="footer-link" href="https://nineshift.github.io/SUPER-ROULETTE/" target="_blank">🎡 ルーレット</a>
+    <a class="footer-link active" href="https://nineshift.github.io/SUPER-SLOT/" target="_blank">🎰 スロット</a>
+  </div>
+
+</div>
+<script>
+const ITEM_H = 74;
+let items = ['りんご', 'ばなな', 'ぶどう', 'メロン', 'いちご', 'もも', 'みかん', 'キウイ'];
+let spinning = false;
+let autoRemove = false;
+let history = [];
+let pendingRemoval = null; // item to remove on next spin
+
+function addHistory(result) {
+  history.unshift(result); // newest first
+  const panel = document.getElementById('historyPanel');
+  const list = document.getElementById('historyList');
+  panel.classList.add('visible');
+  list.innerHTML = '';
+  history.forEach((val, i) => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <span class="history-num">${history.length - i}</span>
+      <span class="history-value">${val}</span>
+      <span class="history-badge">${i === 0 ? '最新' : `${i + 1}回前`}</span>
+    `;
+    list.appendChild(item);
+  });
+  updateAnalysis();
+}
+
+function clearHistory() {
+  history = [];
+  document.getElementById('historyPanel').classList.remove('visible');
+  document.getElementById('historyList').innerHTML = '';
+  document.getElementById('analysisPanel').classList.remove('visible');
+}
+
+// ── Bias analysis ──
+function updateAnalysis() {
+  const n = history.length;
+  if(n < 5) { document.getElementById('analysisPanel').classList.remove('visible'); return; }
+
+  // Count occurrences (use original items + any items in history not currently in items)
+  const allKeys = [...new Set([...items, ...history])];
+  const counts = {};
+  allKeys.forEach(k => counts[k] = 0);
+  history.forEach(v => { if(counts[v] !== undefined) counts[v]++; });
+
+  const k = allKeys.length;
+  const expected = n / k;
+
+  // Chi-square statistic
+  let chi2 = 0;
+  allKeys.forEach(key => { const diff = counts[key] - expected; chi2 += (diff * diff) / expected; });
+
+  // p-value approximation via chi-square CDF (df = k-1)
+  const df = k - 1;
+  const p = 1 - chi2cdf(chi2, df);
+
+  // Verdict
+  const panel = document.getElementById('analysisPanel');
+  const verdict = document.getElementById('analysisVerdict');
+  const note = document.getElementById('analysisNote');
+  panel.classList.add('visible');
+
+  let verdictClass, verdictText;
+  if(p > 0.1) {
+    verdictClass = 'fair'; verdictText = '✅ 偏りなし — 均等に選ばれています';
+  } else if(p > 0.05) {
+    verdictClass = 'slight'; verdictText = '🤔 やや偏りあり — 注意レベル';
+  } else {
+    verdictClass = 'biased'; verdictText = '⚠️ 偏りあり — 統計的に有意';
+  }
+  verdict.className = 'analysis-verdict ' + verdictClass;
+  verdict.textContent = verdictText;
+  note.textContent = `χ²=${chi2.toFixed(2)}  df=${df}  p=${p < 0.001 ? '<0.001' : p.toFixed(3)}  試行数=${n}回`;
+
+  // Bar chart
+  const maxCount = Math.max(...allKeys.map(k => counts[k]), 1);
+  const sorted = [...allKeys].sort((a, b) => counts[b] - counts[a]);
+  const barList = document.getElementById('barList');
+  barList.innerHTML = '';
+  sorted.forEach(key => {
+    const cnt = counts[key];
+    const pct = (cnt / maxCount) * 100;
+    const expPct = (expected / maxCount) * 100;
+    const ratio = cnt / expected;
+    const fillClass = ratio > 1.3 ? 'high' : ratio < 0.7 ? 'low' : 'mid';
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <span class="bar-label" title="${key}">${key}</span>
+      <div class="bar-track">
+        <div class="bar-fill ${fillClass}" style="width:${pct}%"></div>
+        <div class="bar-expected" style="left:${expPct}%"></div>
+      </div>
+      <span class="bar-count">${cnt}</span>
+    `;
+    barList.appendChild(row);
+  });
+
+  // Stats chips
+  const most = sorted[0], least = sorted[sorted.length - 1];
+  document.getElementById('analysisStats').innerHTML = `
+    <span class="stat-chip">🔝 最多: ${most} (${counts[most]}回)</span>
+    <span class="stat-chip">📉 最少: ${least} (${counts[least]}回)</span>
+    <span class="stat-chip">📐 期待値: ${expected.toFixed(1)}回</span>
+  `;
+}
+
+// Chi-square CDF approximation (Wilson-Hilferty)
+function chi2cdf(x, df) {
+  if(x <= 0) return 0;
+  return gammainc(x / 2, df / 2);
+}
+function gammainc(x, a) {
+  // Regularized incomplete gamma via series expansion
+  if(x < 0 || a <= 0) return 0;
+  if(x === 0) return 0;
+  let sum = 1, term = 1;
+  for(let i = 1; i < 200; i++) {
+    term *= x / (a + i);
+    sum += term;
+    if(Math.abs(term) < 1e-8) break;
+  }
+  return Math.min(1, sum * Math.exp(-x + a * Math.log(x) - lgamma(a + 1)));
+}
+function lgamma(z) {
+  // Stirling approximation
+  const c = [76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5];
+  let y = z, tmp = z + 5.5;
+  tmp -= (z + 0.5) * Math.log(tmp);
+  let ser = 1.000000000190015;
+  for(let j = 0; j < 6; j++) { ser += c[j] / ++y; }
+  return -tmp + Math.log(2.5066282746310005 * ser / z);
+}
+
+function clearItems() {
+  if(spinning) return;
+  items = [];
+  pendingRemoval = null;
+  renderTags();
+  buildReel();
+}
+
+function toggleAutoRemove() {
+  autoRemove = !autoRemove;
+  if(!autoRemove) pendingRemoval = null;
+  document.getElementById('toggleRow').classList.toggle('on', autoRemove);
+}
+
+// ── Audio ──
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+
+function beep(freq, type, duration, vol = 0.18, time = AC.currentTime) {
+  const osc = AC.createOscillator();
+  const gain = AC.createGain();
+  osc.connect(gain); gain.connect(AC.destination);
+  osc.type = type; osc.frequency.setValueAtTime(freq, time);
+  gain.gain.setValueAtTime(vol, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+  osc.start(time); osc.stop(time + duration);
+}
+
+function playSpinTick() { beep(380, 'square', 0.04, 0.08); }
+
+function playResult() {
+  const t = AC.currentTime;
+  // Punchy upbeat chime - fits the pop theme
+  beep(523, 'square', 0.07, 0.18, t);
+  beep(659, 'square', 0.07, 0.18, t + 0.08);
+  beep(784, 'square', 0.07, 0.18, t + 0.16);
+  beep(1047, 'sine',  0.25, 0.22, t + 0.24);
+}
+
+let tickInterval = null;
+function startTicks() {
+  tickInterval = setInterval(() => { if(AC.state==='suspended') AC.resume(); playSpinTick(); }, 80);
+}
+function stopTicks() { clearInterval(tickInterval); tickInterval = null; }
+
+// ── Tags ──
+function renderTags(){const c=document.getElementById('tagsContainer');c.innerHTML='';items.forEach((item,i)=>{const tag=document.createElement('div');tag.className='item-tag';tag.innerHTML=`<span>${item}</span><button onclick="removeItem(${i})">✕</button>`;c.appendChild(tag);});}
+function addItem(){const input=document.getElementById('addInput');const vals=input.value.split('\n').map(v=>v.trim()).filter(v=>v.length>0);if(!vals.length||spinning)return;vals.forEach(v=>items.push(v));input.value='';input.style.height='auto';renderTags();buildReel();}
+function removeItem(i){if(spinning)return;items.splice(i,1);renderTags();buildReel();}
+document.getElementById('addInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addItem();}});
+document.getElementById('addInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+
+// ── Reel ──
+function buildPool(){const src=items.length>=2?items:['？','？'];const times=Math.max(6,Math.ceil(40/src.length));const pool=[];for(let t=0;t<times;t++)src.forEach(it=>pool.push(it));return pool;}
+function buildReel(){const container=document.getElementById('reelContainer');container.innerHTML='';const reel=document.createElement('div');reel.className='reel';reel.id='reel0';buildPool().forEach(item=>{const el=document.createElement('div');el.className='reel-item';el.textContent=item;reel.appendChild(el);});container.appendChild(reel);initPosition();}
+function initPosition(){const reel=document.getElementById('reel0');const midIdx=Math.floor(reel.children.length/2);const containerH=222;const offset=midIdx*ITEM_H-(containerH-ITEM_H)/2;reel.style.transform=`translateY(-${offset}px)`;reel._offset=offset;}
+
+// ── Spin ──
+function spin(){
+  if(spinning)return;
+
+  // Remove previous result synchronously before starting this spin
+  if(autoRemove && pendingRemoval !== null) {
+    const idx = items.indexOf(pendingRemoval);
+    if(idx !== -1) {
+      // Animate the tag out visually, but remove from data immediately
+      const tags = document.querySelectorAll('#tagsContainer .item-tag');
+      const tag = tags[idx];
+      if(tag) tag.classList.add('removing');
+      items.splice(idx, 1);
+      // Re-render tags after animation; reel rebuilt below after items check
+      setTimeout(() => renderTags(), 380);
+    }
+    pendingRemoval = null;
+  }
+
+  if(items.length<2){alert('選択肢を2つ以上追加してください');return;}
+  if(AC.state==='suspended') AC.resume();
+  spinning=true;
+  document.getElementById('spinBtn').disabled=true;
+  const resultEl=document.getElementById('result');
+  const textEl=resultEl.querySelector('.result-text');
+  resultEl.classList.remove('pop','wipe');
+  textEl.textContent='🌀 スピン中...!!';
+
+  // Rebuild reel with updated items before spinning
+  buildReel();
+
+  const target=items[Math.floor(Math.random()*items.length)];
+  if(AC.state==='suspended') AC.resume();
+  startSpinUnified(target);
+}
+
+function startSpinUnified(targetText) {
+  const reel = document.getElementById('reel0');
+  Array.from(reel.children).forEach(el => el.classList.remove('active'));
+
+  const children = Array.from(reel.children);
+  const containerH = 222;
+  const centerOffset = (containerH - ITEM_H) / 2;
+
+  // Find target index
+  const searchFrom = Math.floor(children.length * 0.3);
+  let targetIdx = searchFrom;
+  for(let i = searchFrom; i < children.length - 3; i++) {
+    if(children[i].textContent === targetText) { targetIdx = i; break; }
+  }
+  const targetOffset = targetIdx * ITEM_H - centerOffset;
+
+  // Phase durations (ms)
+  const T_ACCEL = 600;   // ramp up
+  const T_CRUISE = 2200; // full speed
+  const T_DECEL = 2800;  // +1s longer decel (was 1800)
+  const T_TOTAL = T_ACCEL + T_CRUISE + T_DECEL;
+
+  // Peak speed in px/ms
+  const peakSpeed = 1.4;
+
+  // Distance covered during accel (ease-in quad): integral of t^2 curve * peakSpeed * T_ACCEL
+  const d_accel = peakSpeed * T_ACCEL / 3;
+  // Distance during cruise
+  const d_cruise = peakSpeed * T_CRUISE;
+
+  // Starting position
+  const startPos = reel._offset || 0;
+  const totalH = children.length * ITEM_H;
+
+  // We need to land exactly on targetOffset.
+  // Total distance = d_accel + d_cruise + d_decel
+  // Normalise: find how far we need to go so we end at targetOffset
+  let normStart = ((startPos % totalH) + totalH) % totalH;
+  let normTarget = ((targetOffset % totalH) + totalH) % totalH;
+  // We always move forward, so compute forward distance to target
+  let fwdToTarget = (normTarget - normStart + totalH) % totalH;
+  // Add enough full loops so total distance >= d_accel + d_cruise + some margin
+  const minDist = d_accel + d_cruise + ITEM_H * 4;
+  while(fwdToTarget < minDist) fwdToTarget += items.length * ITEM_H;
+  // d_decel must be exactly the remainder
+  const d_total = fwdToTarget;
+  const d_decel = d_total - d_accel - d_cruise;
+
+  const startTime = performance.now();
+  let lastSliceCount = 0;
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed, T_TOTAL);
+    let pos;
+
+    if(t <= T_ACCEL) {
+      const p = t / T_ACCEL;
+      pos = startPos + d_accel * p * p;
+    } else if(t <= T_ACCEL + T_CRUISE) {
+      const p = t - T_ACCEL;
+      pos = startPos + d_accel + peakSpeed * p;
+    } else {
+      const p = (t - T_ACCEL - T_CRUISE) / T_DECEL;
+      pos = startPos + d_accel + d_cruise + d_decel * (1 - Math.pow(1 - p, 3));
+    }
+
+    // Wrap for display
+    const displayPos = ((pos % totalH) + totalH) % totalH;
+    reel.style.transform = `translateY(-${displayPos}px)`;
+
+    // Tick on every new slice boundary crossed (cumulative, no modulo glitch)
+    const sliceCount = Math.floor((pos - startPos) / ITEM_H);
+    if(sliceCount > lastSliceCount) {
+      playSpinTick();
+      lastSliceCount = sliceCount;
+    }
+
+    if(t < T_TOTAL) {
+      reel._raf = requestAnimationFrame(frame);
+    } else {
+      reel.style.transform = `translateY(-${((targetOffset % totalH) + totalH) % totalH}px)`;
+      stopTicks();
+      children.forEach((el, i) => el.classList.toggle('active', i === targetIdx));
+      onDone(targetText);
+    }
+  }
+
+  reel._raf = requestAnimationFrame(frame);
+}
+
+// Legacy stubs (no longer used)
+function startSpin(){}
+function stopSpin(){}
+
+function onDone(result){
+  spinning=false;
+  document.getElementById('spinBtn').disabled=false;
+  playResult();
+  const resultEl=document.getElementById('result');
+  const textEl=resultEl.querySelector('.result-text');
+  textEl.textContent=`🎉 ${result} に決定!!`;
+  resultEl.classList.remove('pop','wipe');
+  void resultEl.offsetWidth;
+  resultEl.classList.add('wipe','pop');
+  const machine=document.getElementById('machine');
+  machine.classList.remove('flash');void machine.offsetWidth;machine.classList.add('flash');
+  setTimeout(()=>machine.classList.remove('flash'),1100);
+
+  addHistory(result);
+
+  // Store for removal on next spin (not immediately)
+  if(autoRemove) {
+    pendingRemoval = result;
+  }
+}
+
+renderTags();buildReel();
+</script>
+</body>
+</html>
+
